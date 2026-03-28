@@ -1,0 +1,70 @@
+{
+  "name": "connectme",
+  "version": "1.0.0",
+  "description": "ConnectMe - Social Media & Couples Communication App",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && cd backend && npm install && cd ../mobile && npm install && cd ../web && npm install",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:web\" \"npm run dev:mobile\" --names \"API,WEB,MOBILE\" --prefix-colors \"blue,green,magenta\"",
+    "predev:backend": "node -e \"(async()=>{try{const kill=require('kill-port');await kill(5000);console.log('Freed port 5000');}catch(e){console.log('Port 5000 already free');}})()\"",
+    "dev:backend": "cd backend && npm run dev",
+    "predev:web": "node -e \"(async()=>{try{const kill=require('kill-port');await kill(3000);console.log('Freed port 3000');}catch(e){console.log('Port 3000 already free');}})()\"",
+    "dev:web": "cd web && npm run dev",
+    "predev:mobile": "node -e \"(async()=>{try{const kill=require('kill-port');await kill(8081);console.log('Freed port 8081');}catch(e){console.log('Port 8081 already free');}})()\"",
+    "dev:mobile": "cd mobile && npm start",
+    "db:migrate": "cd backend && npm run db:migrate",
+    "db:migrate:alter": "cd backend && npm run db:migrate:alter",
+    "db:migrate:force": "cd backend && npm run db:migrate:force",
+    "db:seed:mock": "cd backend && npm run db:seed:mock",
+    "db:seed:mock:append": "cd backend && npm run db:seed:mock:append",
+    "db:reset:mock": "cd backend && npm run db:reset:mock",
+    "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev:web\" \"npm run dev:mobile\" --names \"API,WEB,MOBILE\" --prefix-colors \"blue,green,magenta\"",
+    "start": "npm run dev",
+    "start:backend": "cd backend && npm start",
+    "start:web": "cd web && npm start",
+    "start:mobile": "cd mobile && npm start",
+    "build": "npm run build:backend && npm run build:web && npm run build:mobile",
+    "build:backend": "cd backend && echo Backend build completed - no build step needed for Node.js",
+    "build:web": "cd web && npm run build",
+    "build:mobile": "cd mobile && npm run build",
+    "test": "concurrently \"npm run test:backend\" \"npm run test:web\" \"npm run test:mobile\" --names \"API,WEB,MOBILE\"",
+    "test:backend": "cd backend && npm test",
+    "test:web": "cd web && npm test",
+    "test:mobile": "cd mobile && npm test",
+    "clean": "npm run clean:backend && npm run clean:web && npm run clean:mobile",
+    "clean:backend": "cd backend && if exist node_modules rmdir /s /q node_modules && if exist package-lock.json del package-lock.json",
+    "clean:web": "cd web && if exist node_modules rmdir /s /q node_modules && if exist package-lock.json del package-lock.json && if exist .next rmdir /s /q .next",
+    "clean:mobile": "cd mobile && if exist node_modules rmdir /s /q node_modules && if exist package-lock.json del package-lock.json && if exist ios\\Pods rmdir /s /q ios\\Pods && if exist ios\\Podfile.lock del ios\\Podfile.lock",
+    "lint": "npm run lint:backend && npm run lint:web && npm run lint:mobile",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:web": "cd web && npm run lint",
+    "lint:mobile": "cd mobile && npm run lint",
+    "ios": "cd mobile && npm run ios",
+    "android": "cd mobile && npm run android",
+    "web": "cd web && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "kill-port": "^2.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/connectme"
+  },
+  "keywords": [
+    "social-media",
+    "instagram-clone",
+    "chat-app",
+    "couples-app",
+    "react-native",
+    "nodejs",
+    "postgresql",
+    "webrtc"
+  ],
+  "author": "ConnectMe Team",
+  "license": "MIT"
+}

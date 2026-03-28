@@ -1,0 +1,11 @@
+{
+  "name": "ConnectMe",
+  "short_name": "ConnectMe",
+  "description": "Social Media & Couples Communication App",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAFA",
+  "theme_color": "#E1306C",
+  "orientation": "portrait-primary",
+  "icons": []
+}
