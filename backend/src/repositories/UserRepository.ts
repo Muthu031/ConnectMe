@@ -2,7 +2,7 @@
  * User Repository - Data Access Layer for User entity
  */
 
-import { eq, or } from 'drizzle-orm';
+import { eq, or, sql } from 'drizzle-orm';
 import { getDB } from '../config/database';
 import { users } from '../db/schema';
 import { IUser, IUserCreateInput, IUserUpdateInput } from '../types/user.types';
@@ -231,6 +231,66 @@ export class UserRepository extends BaseRepository<IUser, IUserCreateInput, IUse
       return (user as IUser) || null;
     } catch (error) {
       throw new Error(`Failed to find user by username: ${error}`);
+    }
+  }
+
+  /**
+   * Find user by phone number
+   */
+  async findByPhone(phone: string): Promise<IUser | null> {
+    try {
+      const db = this.getDb();
+      const user = await db.query.users.findFirst({
+        where: eq(users.phone, phone.trim())
+      });
+      return (user as IUser) || null;
+    } catch (error) {
+      throw new Error(`Failed to find user by phone: ${error}`);
+    }
+  }
+
+  /**
+   * Find user by email or phone
+   */
+  async findByEmailOrPhone(email?: string, phone?: string): Promise<IUser | null> {
+    try {
+      const db = this.getDb();
+      const normalizedEmail = email?.toLowerCase().trim();
+      const normalizedPhone = phone?.trim();
+
+      if (normalizedEmail && normalizedPhone) {
+        const user = await db.query.users.findFirst({
+          where: or(eq(users.email, normalizedEmail), eq(users.phone, normalizedPhone))
+        });
+        return (user as IUser) || null;
+      }
+
+      if (normalizedEmail) {
+        return this.findByEmail(normalizedEmail);
+      }
+
+      if (normalizedPhone) {
+        return this.findByPhone(normalizedPhone);
+      }
+
+      return null;
+    } catch (error) {
+      throw new Error(`Failed to find user by email or phone: ${error}`);
+    }
+  }
+
+  /**
+   * Find user by OTP code stored in JSON field
+   */
+  async findByOtpCode(otpCode: string): Promise<IUser | null> {
+    try {
+      const db = this.getDb();
+      const user = await db.query.users.findFirst({
+        where: sql`(${users.otp} ->> 'code') = ${otpCode}`
+      });
+      return (user as IUser) || null;
+    } catch (error) {
+      throw new Error(`Failed to find user by OTP: ${error}`);
     }
   }
 

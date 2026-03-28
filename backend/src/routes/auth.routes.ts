@@ -4,7 +4,7 @@
 
 import { Router } from 'express';
 import { authController } from '../controllers/AuthController';
-import { protect } from '../middleware/auth';
+import { protect, optionalAuth } from '../middleware/auth';
 
 const router = Router();
 
@@ -28,6 +28,20 @@ router.post('/login', (req, res) => authController.login(req, res));
  * @access  Public
  */
 router.post('/refresh-token', (req, res) => authController.refreshToken(req, res));
+
+/**
+ * @route   POST /api/auth/verify-otp
+ * @desc    Verify account with OTP
+ * @access  Public (can use token optionally)
+ */
+router.post('/verify-otp', optionalAuth, (req, res) => authController.verifyOtp(req, res));
+
+/**
+ * @route   POST /api/auth/resend-otp
+ * @desc    Resend OTP for account verification
+ * @access  Public (can use token optionally)
+ */
+router.post('/resend-otp', optionalAuth, (req, res) => authController.resendOtp(req, res));
 
 /**
  * @route   POST /api/auth/logout

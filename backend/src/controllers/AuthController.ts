@@ -108,6 +108,60 @@ export class AuthController {
   }
 
   /**
+   * Verify OTP endpoint
+   */
+  async verifyOtp(req: IAuthRequest, res: Response): Promise<void> {
+    try {
+      const { otp, email, phone } = req.body;
+
+      if (!otp) {
+        throw new AppError('OTP is required', 'VALIDATION_ERROR', 400);
+      }
+
+      await userService.verifyOtp(String(otp), {
+        userId: req.user?.id,
+        email: typeof email === 'string' ? email : undefined,
+        phone: typeof phone === 'string' ? phone : undefined
+      });
+
+      const response: IApiResponse<null> = {
+        status: 'success',
+        message: 'Account verified successfully',
+        timestamp: new Date()
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      this.handleError(error, res);
+    }
+  }
+
+  /**
+   * Resend OTP endpoint
+   */
+  async resendOtp(req: IAuthRequest, res: Response): Promise<void> {
+    try {
+      const { email, phone } = req.body || {};
+
+      await userService.resendOtp({
+        userId: req.user?.id,
+        email: typeof email === 'string' ? email : undefined,
+        phone: typeof phone === 'string' ? phone : undefined
+      });
+
+      const response: IApiResponse<null> = {
+        status: 'success',
+        message: 'OTP sent successfully',
+        timestamp: new Date()
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      this.handleError(error, res);
+    }
+  }
+
+  /**
    * Logout endpoint
    */
   async logout(req: IAuthRequest, res: Response): Promise<void> {

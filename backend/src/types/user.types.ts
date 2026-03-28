@@ -30,6 +30,11 @@ export interface IUserUpdateInput {
   lastSeen?: Date | null;
   isEmailVerified?: boolean;
   isPhoneVerified?: boolean;
+  isVerified?: boolean;
+  otp?: {
+    code: string;
+    expiresAt: string;
+  } | null;
   postsCount?: number;
   followersCount?: number;
   followingCount?: number;

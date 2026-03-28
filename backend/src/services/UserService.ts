@@ -13,6 +13,16 @@ export class UserService {
   private readonly JWT_SECRET = process.env.JWT_SECRET || 'secret';
   private readonly JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'refresh_secret';
 
+  private generateOtpCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  private buildOtpPayload(): { code: string; expiresAt: string } {
+    const code = this.generateOtpCode();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    return { code, expiresAt };
+  }
+
   /**
    * Register a new user
    */
@@ -90,6 +100,17 @@ export class UserService {
         500
       );
     }
+
+    const otpPayload = this.buildOtpPayload();
+    await this.userRepository.update(user.id, {
+      otp: otpPayload,
+      isVerified: false,
+      isEmailVerified: false,
+      isPhoneVerified: false
+    });
+
+    // TODO: Integrate email/SMS provider here. Keeping log for local dev observability.
+    console.log(`OTP generated for user ${user.id}: ${otpPayload.code}`);
 
     // Generate tokens
     const tokens = this.generateTokens(user.id);
@@ -192,6 +213,79 @@ export class UserService {
         401
       );
     }
+  }
+
+  /**
+   * Verify account with OTP
+   */
+  async verifyOtp(otp: string, identifier?: { userId?: string; email?: string; phone?: string }): Promise<void> {
+    if (!/^\d{6}$/.test(otp)) {
+      throw new AppError('OTP must be a 6-digit code', 'VALIDATION_ERROR', 400);
+    }
+
+    let user: IUser | null = null;
+
+    if (identifier?.userId) {
+      user = await this.userRepository.findById(identifier.userId);
+    }
+
+    if (!user && (identifier?.email || identifier?.phone)) {
+      user = await this.userRepository.findByEmailOrPhone(identifier.email, identifier.phone);
+    }
+
+    if (!user) {
+      user = await this.userRepository.findByOtpCode(otp);
+    }
+
+    if (!user) {
+      throw new AppError('Invalid OTP', 'INVALID_OTP', 400);
+    }
+
+    const storedOtp = user.otp as { code?: string; expiresAt?: string } | null;
+
+    if (!storedOtp?.code || storedOtp.code !== otp) {
+      throw new AppError('Invalid OTP', 'INVALID_OTP', 400);
+    }
+
+    if (!storedOtp.expiresAt || new Date(storedOtp.expiresAt).getTime() < Date.now()) {
+      throw new AppError('OTP has expired', 'OTP_EXPIRED', 400);
+    }
+
+    await this.userRepository.update(user.id, {
+      otp: null,
+      isVerified: true,
+      isEmailVerified: !user.email.endsWith('@phone.connectme.local'),
+      isPhoneVerified: !!user.phone
+    });
+  }
+
+  /**
+   * Resend verification OTP
+   */
+  async resendOtp(identifier?: { userId?: string; email?: string; phone?: string }): Promise<void> {
+    let user: IUser | null = null;
+
+    if (identifier?.userId) {
+      user = await this.userRepository.findById(identifier.userId);
+    }
+
+    if (!user && (identifier?.email || identifier?.phone)) {
+      user = await this.userRepository.findByEmailOrPhone(identifier.email, identifier.phone);
+    }
+
+    if (!user) {
+      throw new AppError('User not found for OTP resend', 'USER_NOT_FOUND', 404);
+    }
+
+    if (user.isVerified) {
+      throw new AppError('Account already verified', 'ALREADY_VERIFIED', 400);
+    }
+
+    const otpPayload = this.buildOtpPayload();
+    await this.userRepository.update(user.id, { otp: otpPayload });
+
+    // TODO: Integrate email/SMS provider here. Keeping log for local dev observability.
+    console.log(`OTP resent for user ${user.id}: ${otpPayload.code}`);
   }
 
   /**
