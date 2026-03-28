@@ -1,0 +1,12 @@
+{
+  "watch": ["src"],
+  "ext": "ts",
+  "exec": "ts-node",
+  "script": "./src/server.ts",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "delay": 500,
+  "ignore": ["node_modules/", "dist/"],
+  "legacyWatch": true
+}

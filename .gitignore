@@ -1,30 +1,258 @@
-# Node modules
-node_modules/
+# ==========================================
+# PROJECT-WIDE GITIGNORE
+# ConnectMe Social Media App
+# ==========================================
 
-# Environment variables
+# ==========================================
+# Dependencies
+# ==========================================
+node_modules/
+bower_components/
+jspm_packages/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# ==========================================
+# Environment & Secrets
+# ==========================================
 .env
 .env.local
-.env.production
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.example
+.env.backup
+*.pem
+*.key
+private_key.json
+secrets/
+.secrets/
+credentials.json
+service-account-key.json
+firebase-key.json
+aws-credentials
+gcloud-key.json
 
+# ==========================================
+# IDE & Editor Files
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.AppleDouble
+.LSOverride
+*.sublime-workspace
+*.sublime-project
+*.sublime-settings
+.editorconfig
+Thumbs.db
+
+# ==========================================
+# Build & Dist Output
+# ==========================================
+dist/
+build/
+out/
+.next/
+.nuxt/
+coverage/
+.turbo/
+.turbopack/
+
+# ==========================================
+# TypeScript
+# ==========================================
+*.ts.js
+*.ts.map
+tsconfig.tsbuildinfo
+
+# ==========================================
 # Logs
+# ==========================================
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+/.npm
+.npm
+debug-logs/
+error-logs/
 
-# OS
+# ==========================================
+# LARGE & WEBPACK BUILD FILES
+# ==========================================
+# Webpack hot-update files (large & frequently changing)
+**/*.hot-update.js
+**/*.hot-update.json
+*.webpack.hot-update.js
+*.webpack.hot-update.json
+web\.next/static/webpack/**/*.js
+web\.next/static/webpack/**/*.json
+web\.next/static/**/*.hot-update.js
+web\.next/static/**/*.hot-update.json
+
+# Next.js specific
+.next/
+.next/**
+.next/cache/**
+.next/static/webpack/**
+out/
+
+# Webpack
+*.webpack.js
+*.webpack.bundle.js
+
+# ==========================================
+# Mobile & React Native
+# ==========================================
+mobile/node_modules/
+mobile/android/
+mobile/ios/
+mobile/build/
+mobile/.gradle/
+mobile/.m2/
+mobile/*.xcodeproj/
+mobile/*.xcworkspace/
+mobile/.watchman*
+mobile/coverage/
+mobile/.yarnrc
+mobile/.babelrc
+
+# ==========================================
+# Backend
+# ==========================================
+backend/node_modules/
+backend/dist/
+backend/build/
+backend/uploads/
+backend/temp/
+backend/logs/
+backend/*.log
+backend/.db-cache/
+backend/.cache/
+
+# ==========================================
+# Frontend/Web
+# ==========================================
+web/node_modules/
+web/dist/
+web/build/
+web/.next/
+web/out/
+web/.nuxt/
+web/.cache/
+web/.vercel/
+web/public/uploads/
+
+# ==========================================
+# Database
+# ==========================================
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+database.yml
+.pgpass
+pgpass
+
+# ==========================================
+# OS & System Files
+# ==========================================
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
-*.swp
+$RECYCLE.BIN/
+Desktop.ini
+[Dd]esktop.ini
 
-# IDE
-.vscode/
-.idea/
-*.sublime-workspace
-
-# Build outputs
-dist/
-build/
-
-# Testing coverage
+# ==========================================
+# Testing & Coverage
+# ==========================================
 coverage/
+.nyc_output/
+junit.xml
+test-results/
+junit-report.xml
+cypress/videos/
+cypress/screenshots/
+.mocha.env
+
+# ==========================================
+# CI/CD
+# ==========================================
+.github/workflows/cache/
+.gitlab-ci.cache/
+.circleci/cache/
+.gcloud/
+
+# ==========================================
+# Docker
+# ==========================================
+docker-compose.override.yml
+.dockerignore.local
+
+# ==========================================
+# Temporary & Cache Files
+# ==========================================
+tmp/
+temp/
+.cache/
+.vite/
+.parcel-cache/
+.rollup.cache
+dist-ssr/
+
+# ==========================================
+# Large Media Files
+# ==========================================
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.flv
+*.wmv
+*.zip
+*.rar
+*.tar.gz
+*.7z
+*.iso
+*.dmg
+*.mp3
+*.wav
+*.psd
+*.xcf
+*.fig
+
+# ==========================================
+# Generated Files
+# ==========================================
+*.generated.ts
+*.generated.js
+*.auto.ts
+*.auto.js
+*.backup
+*.bak
+
+# ==========================================
+# Project Specific
+# ==========================================
+claude/
+project-notes/
+.debug/
+
+# Keep important git files
+!.gitkeep
+!.gitignore
+!.gitattributes
+!.github/
