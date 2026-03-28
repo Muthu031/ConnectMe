@@ -4,7 +4,7 @@
 
 import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { IAuthRequest } from '@types/common.types';
+import { IAuthRequest } from '../types/common.types';
 
 export interface DecodedToken {
   id: string;

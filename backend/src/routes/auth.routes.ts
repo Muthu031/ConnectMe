@@ -3,8 +3,8 @@
  */
 
 import { Router } from 'express';
-import { authController } from '@controllers/AuthController';
-import { protect } from '@middleware/auth';
+import { authController } from '../controllers/AuthController';
+import { protect } from '../middleware/auth';
 
 const router = Router();
 

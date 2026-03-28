@@ -3,11 +3,18 @@
  */
 
 import { eq, or } from 'drizzle-orm';
-import { getDB } from '@config/database';
-import { users } from '@db/schema';
-import { IUser, IUserCreateInput, IUserUpdateInput } from '@types/user.types';
+import { getDB } from '../config/database';
+import { users } from '../db/schema';
+import { IUser, IUserCreateInput, IUserUpdateInput } from '../types/user.types';
 import { BaseRepository } from './IRepository';
 import bcrypt from 'bcryptjs';
+import { randomUUID } from 'crypto';
+
+type DbError = Error & {
+  detail?: string;
+  code?: string;
+  cause?: DbError;
+};
 
 export class UserRepository extends BaseRepository<IUser, IUserCreateInput, IUserUpdateInput> {
   /**
@@ -21,28 +28,69 @@ export class UserRepository extends BaseRepository<IUser, IUserCreateInput, IUse
    * Create a new user
    */
   async create(data: IUserCreateInput): Promise<IUser> {
+    const db = this.getDb();
+    const normalizedUsername = data.username.toLowerCase().trim();
+    const normalizedEmail = data.email?.toLowerCase().trim();
+    const normalizedPhone = data.phone?.trim();
+
+    const duplicateUser = await db.query.users.findFirst({
+      where: normalizedEmail && normalizedPhone
+        ? or(
+            eq(users.username, normalizedUsername),
+            or(eq(users.email, normalizedEmail), eq(users.phone, normalizedPhone))
+          )
+        : normalizedEmail
+          ? or(eq(users.username, normalizedUsername), eq(users.email, normalizedEmail))
+          : normalizedPhone
+            ? or(eq(users.username, normalizedUsername), eq(users.phone, normalizedPhone))
+            : eq(users.username, normalizedUsername)
+    });
+
+    if (duplicateUser) {
+      const duplicateError = new Error('User already exists') as Error & { code?: string };
+      duplicateError.code = 'USER_EXISTS';
+      throw duplicateError;
+    }
+
     try {
       // Hash password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(data.password, salt);
 
-      const db = this.getDb();
-
       // Insert user
       const [user] = await db
         .insert(users)
         .values({
-          username: data.username.toLowerCase().trim(),
-          email: data.email.toLowerCase().trim(),
-          phone: data.phone?.trim(),
+          id: randomUUID(),
+          username: normalizedUsername,
+          email: normalizedEmail || '',
+          phone: normalizedPhone,
           password: hashedPassword,
-          fullName: data.fullName?.trim()
+          fullName: data.fullName?.trim(),
+          createdAt: new Date(),
+          updatedAt: new Date()
         })
         .returning();
 
       return user as IUser;
     } catch (error) {
-      throw new Error(`Failed to create user: ${error}`);
+      const dbError = error as DbError;
+      const pgError = (dbError.cause as DbError | undefined) || dbError;
+      console.error('UserRepository.create insert failed', {
+        message: pgError.message,
+        detail: pgError.detail,
+        code: pgError.code
+      });
+
+      if (pgError.code === '23505') {
+        const duplicateError = new Error('User already exists') as Error & { code?: string };
+        duplicateError.code = 'USER_EXISTS';
+        throw duplicateError;
+      }
+
+      const createError = new Error('Failed to create user') as Error & { code?: string };
+      createError.code = 'USER_CREATE_FAILED';
+      throw createError;
     }
   }
 
@@ -190,16 +238,27 @@ export class UserRepository extends BaseRepository<IUser, IUserCreateInput, IUse
    * Find user by email or username
    */
   async findByEmailOrUsername(
-    email: string,
-    username: string
+    email: string | undefined,
+    username: string,
+    phone?: string
   ): Promise<IUser | null> {
     try {
       const db = this.getDb();
+      const normalizedUsername = username.toLowerCase().trim();
+      const normalizedEmail = email?.toLowerCase().trim();
+      const normalizedPhone = phone?.trim();
+
       const user = await db.query.users.findFirst({
-        where: or(
-          eq(users.email, email.toLowerCase()),
-          eq(users.username, username.toLowerCase())
-        )
+        where: normalizedEmail && normalizedPhone
+          ? or(
+              eq(users.username, normalizedUsername),
+              or(eq(users.email, normalizedEmail), eq(users.phone, normalizedPhone))
+            )
+          : normalizedEmail
+            ? or(eq(users.username, normalizedUsername), eq(users.email, normalizedEmail))
+            : normalizedPhone
+              ? or(eq(users.username, normalizedUsername), eq(users.phone, normalizedPhone))
+              : eq(users.username, normalizedUsername)
       });
       return (user as IUser) || null;
     } catch (error) {

@@ -4,9 +4,9 @@
 
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { userRepository } from '@repositories/UserRepository';
-import { IUser, IUserCreateInput, IUserResponse } from '@types/user.types';
-import { AppError, IAuthTokens } from '@types/common.types';
+import { userRepository } from '../repositories/UserRepository';
+import { IUser, IUserCreateInput, IUserResponse } from '../types/user.types';
+import { AppError, IAuthTokens } from '../types/common.types';
 
 export class UserService {
   private userRepository = userRepository;
@@ -18,6 +18,14 @@ export class UserService {
    */
   async register(input: IUserCreateInput): Promise<{ user: IUserResponse; tokens: IAuthTokens }> {
     // Validation
+    if (!input.fullName || input.fullName.trim().length < 2) {
+      throw new AppError(
+        'Full name must be at least 2 characters',
+        'VALIDATION_ERROR',
+        400
+      );
+    }
+
     if (!input.username || !input.password) {
       throw new AppError(
         'Username and password are required',
@@ -26,30 +34,62 @@ export class UserService {
       );
     }
 
-    if (!input.email) {
+    if (!/^[a-zA-Z0-9._]+$/.test(input.username)) {
       throw new AppError(
-        'Email is required',
+        'Username can only contain letters, numbers, dots, and underscores',
         'VALIDATION_ERROR',
         400
       );
     }
 
-    // Check if user already exists
-    const existingUser = await this.userRepository.findByEmailOrUsername(
-      input.email,
-      input.username
-    );
-
-    if (existingUser) {
+    if (!input.email && !input.phone) {
       throw new AppError(
-        'User already exists with this email or username',
-        'USER_EXISTS',
-        409
+        'Provide at least one contact method: email or phone',
+        'VALIDATION_ERROR',
+        400
       );
     }
 
-    // Create user
-    const user = await this.userRepository.create(input);
+    const normalizedEmail = input.email?.toLowerCase().trim();
+    const normalizedPhone = input.phone?.trim();
+
+    if (normalizedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      throw new AppError(
+        'Invalid email format',
+        'VALIDATION_ERROR',
+        400
+      );
+    }
+
+    // The database currently requires email; generate a stable fallback for phone-only signup.
+    const emailForInsert = normalizedEmail || `${normalizedPhone}@phone.connectme.local`;
+
+    let user: IUser;
+    try {
+      user = await this.userRepository.create({
+        ...input,
+        email: emailForInsert,
+        phone: normalizedPhone,
+        fullName: input.fullName.trim(),
+        username: input.username.trim()
+      });
+    } catch (error) {
+      const repositoryError = error as Error & { code?: string };
+
+      if (repositoryError.code === 'USER_EXISTS') {
+        throw new AppError('User already exists', 'USER_EXISTS', 409);
+      }
+
+      if (repositoryError instanceof AppError) {
+        throw repositoryError;
+      }
+
+      throw new AppError(
+        'Unable to create user at this time',
+        'USER_CREATE_FAILED',
+        500
+      );
+    }
 
     // Generate tokens
     const tokens = this.generateTokens(user.id);
@@ -228,12 +268,12 @@ export class UserService {
       email: user.email,
       phone: user.phone,
       fullName: user.fullName,
-      profilePicture: user.profilePicture,
+      profilePicture: user.profilePicture ?? undefined,
       bio: user.bio,
       isVerified: user.isVerified,
-      followersCount: user.followersCount,
-      followingCount: user.followingCount,
-      postsCount: user.postsCount
+      followersCount: user.followersCount ?? 0,
+      followingCount: user.followingCount ?? 0,
+      postsCount: user.postsCount ?? 0
     };
   }
 }

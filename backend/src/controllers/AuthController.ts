@@ -3,9 +3,9 @@
  */
 
 import { Request, Response } from 'express';
-import { userService } from '@services/UserService';
-import { AppError, IApiResponse, IAuthRequest } from '@types/common.types';
-import { IUserCreateInput } from '@types/user.types';
+import { userService } from '../services/UserService';
+import { AppError, IApiResponse, IAuthRequest } from '../types/common.types';
+import { IUserCreateInput } from '../types/user.types';
 
 export class AuthController {
   /**
@@ -13,23 +13,22 @@ export class AuthController {
    */
   async register(req: Request, res: Response): Promise<void> {
     try {
-      const { username, email, phone, password, fullName } = req.body;
+      const { username, email, phone, password, firstName, lastName, fullName } = req.body;
 
-      // Validate input
-      if (!username || !email || !password) {
-        throw new AppError(
-          'Username, email, and password are required',
-          'VALIDATION_ERROR',
-          400
-        );
-      }
+      const resolvedFullName =
+        typeof fullName === 'string' && fullName.trim().length > 0
+          ? fullName.trim()
+          : [firstName, lastName].filter(Boolean).join(' ').trim() || undefined;
+
+      const normalizedEmail = typeof email === 'string' && email.trim() ? email.trim() : undefined;
+      const normalizedPhone = typeof phone === 'string' && phone.trim() ? phone.trim() : undefined;
 
       const input: IUserCreateInput = {
-        username,
-        email,
-        phone,
-        password,
-        fullName
+        username: String(username || '').trim(),
+        email: normalizedEmail,
+        phone: normalizedPhone,
+        password: String(password || ''),
+        fullName: resolvedFullName || ''
       };
 
       const result = await userService.register(input);

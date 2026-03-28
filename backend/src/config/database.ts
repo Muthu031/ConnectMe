@@ -4,15 +4,16 @@
 
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-import * as schema from '@db/schema';
+import * as schema from '../db/schema';
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 let pool: Pool | null = null;
-let db: ReturnType<typeof drizzle> | null = null;
+let db: NodePgDatabase<typeof schema> | null = null;
 
 /**
  * Initialize database connection
  */
-export const initializeDB = async (): Promise<ReturnType<typeof drizzle>> => {
+export const initializeDB = async (): Promise<NodePgDatabase<typeof schema>> => {
   try {
     if (pool && db) {
       return db;
@@ -45,7 +46,7 @@ export const initializeDB = async (): Promise<ReturnType<typeof drizzle>> => {
 /**
  * Get database instance
  */
-export const getDB = (): ReturnType<typeof drizzle> => {
+export const getDB = (): NodePgDatabase<typeof schema> => {
   if (!db) {
     throw new Error('Database not initialized. Call initializeDB() first.');
   }

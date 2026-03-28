@@ -9,9 +9,9 @@ import morgan from 'morgan';
 import compression from 'compression';
 import 'dotenv/config';
 
-import { initializeDB, closeDB } from '@config/database';
-import authRoutes from '@routes/auth.routes';
-import { AppError, IApiResponse } from '@types/common.types';
+import { initializeDB, closeDB } from './config/database';
+import authRoutes from './routes/auth.routes';
+import { AppError, IApiResponse } from './types/common.types';
 
 const app: Express = express();
 const PORT = process.env.PORT || 5000;

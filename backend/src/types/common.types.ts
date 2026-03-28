@@ -2,6 +2,8 @@
  * Common API Response Types
  */
 
+import type { Request } from 'express';
+
 export interface IApiResponse<T> {
   status: 'success' | 'error';
   message: string;
@@ -76,7 +78,7 @@ export interface IRequestContext {
   userAgent?: string;
 }
 
-export interface IAuthRequest extends Express.Request {
+export interface IAuthRequest extends Request {
   user?: IAuthPayload;
   context?: IRequestContext;
 }
