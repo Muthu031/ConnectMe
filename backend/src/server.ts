@@ -11,6 +11,7 @@ import 'dotenv/config';
 
 import { initializeDB, closeDB } from './config/database';
 import authRoutes from './routes/auth.routes';
+import mockRoutes from './routes/mock.routes';
 import { AppError, IApiResponse } from './types/common.types';
 
 const app: Express = express();
@@ -58,6 +59,7 @@ app.get('/health', (req: Request, res: Response) => {
  * API Routes
  */
 app.use('/api/auth', authRoutes);
+app.use('/api', mockRoutes);
 
 /**
  * 404 Handler

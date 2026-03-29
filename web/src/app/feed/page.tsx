@@ -18,6 +18,7 @@ export default function FeedPage() {
   const dispatch = useDispatch()
 
   const { posts, loading } = useSelector((state: RootState) => state.feed)
+  const feedPosts = Array.isArray(posts) ? posts : []
 
   useEffect(() => {
     // @ts-ignore
@@ -38,7 +39,7 @@ export default function FeedPage() {
 
             {/* Feed Posts */}
             <Box sx={{ mt: isMobile ? 0 : 2 }}>
-              {posts.map((post) => (
+              {feedPosts.map((post) => (
                 <PostCard key={post._id} post={post} />
               ))}
             </Box>

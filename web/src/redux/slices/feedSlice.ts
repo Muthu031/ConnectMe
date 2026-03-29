@@ -35,7 +35,21 @@ const initialState: FeedState = {
 
 export const fetchFeed = createAsyncThunk<FeedPost[]>('feed/fetchFeed', async () => {
   const response = await api.get('/posts')
-  return response.data
+
+  // Support both plain array and wrapped API response shapes.
+  if (Array.isArray(response.data)) {
+    return response.data
+  }
+
+  if (Array.isArray(response.data?.posts)) {
+    return response.data.posts
+  }
+
+  if (Array.isArray(response.data?.data?.posts)) {
+    return response.data.data.posts
+  }
+
+  return []
 })
 
 const feedSlice = createSlice({
