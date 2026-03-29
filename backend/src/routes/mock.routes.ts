@@ -175,7 +175,7 @@ router.post('/stories', protect, async (req: IAuthRequest, res) => {
   return res.status(201).json({ status: 'success', message: 'Story created (mock endpoint)' });
 });
 
-router.post('/stories/:storyId/view', protect, async (req: IAuthRequest, res) => {
+router.post('/stories/:storyId/view', optionalAuth, async (req: IAuthRequest, res) => {
   return res.status(200).json({ status: 'success', storyId: getParam(req, 'storyId') });
 });
 

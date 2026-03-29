@@ -1,19 +1,60 @@
 'use client'
 
+import { useEffect, useMemo, useState } from 'react'
 import { Box, Paper, Typography, Avatar, Button } from '@mui/material'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/redux/store'
+import api from '@/lib/api'
 
-const suggestions = [
-  { id: 1, username: 'user1', name: 'John Doe', avatar: '/avatars/1.jpg' },
-  { id: 2, username: 'user2', name: 'Jane Smith', avatar: '/avatars/2.jpg' },
-  { id: 3, username: 'user3', name: 'Bob Wilson', avatar: '/avatars/3.jpg' },
-  { id: 4, username: 'user4', name: 'Alice Brown', avatar: '/avatars/4.jpg' },
-  { id: 5, username: 'user5', name: 'Charlie Davis', avatar: '/avatars/5.jpg' },
-]
+interface SuggestionUser {
+  _id: string
+  username: string
+  fullName?: string
+  profilePicture?: string
+  followers?: string[]
+}
 
 export default function Sidebar() {
   const { user } = useSelector((state: RootState) => state.auth)
+  const [suggestions, setSuggestions] = useState<SuggestionUser[]>([])
+  const [followState, setFollowState] = useState<Record<string, boolean>>({})
+
+  useEffect(() => {
+    const loadSuggestions = async () => {
+      try {
+        const response = await api.get('/search/users?q=a')
+        const users = response.data?.users || response.data?.data?.users || []
+        if (!Array.isArray(users)) {
+          setSuggestions([])
+          return
+        }
+
+        const filtered = users.filter((item: SuggestionUser) => item._id !== user?._id).slice(0, 6)
+        setSuggestions(filtered)
+      } catch {
+        setSuggestions([])
+      }
+    }
+
+    loadSuggestions()
+  }, [user?._id])
+
+  const handleFollowToggle = async (targetUser: SuggestionUser) => {
+    const isFollowing = followState[targetUser._id] || false
+
+    try {
+      if (isFollowing) {
+        await api.delete(`/users/${targetUser._id}/unfollow`)
+      } else {
+        await api.post(`/users/${targetUser._id}/follow`)
+      }
+      setFollowState((prev) => ({ ...prev, [targetUser._id]: !isFollowing }))
+    } catch {
+      // Keep UI stable if request fails (user likely unauthenticated)
+    }
+  }
+
+  const displaySuggestions = useMemo(() => suggestions.slice(0, 5), [suggestions])
 
   return (
     <Box>
@@ -48,9 +89,9 @@ export default function Sidebar() {
           </Typography>
         </Box>
 
-        {suggestions.map((suggestion) => (
+        {displaySuggestions.map((suggestion) => (
           <Box
-            key={suggestion.id}
+            key={suggestion._id}
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -59,7 +100,7 @@ export default function Sidebar() {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Avatar src={suggestion.avatar} sx={{ width: 32, height: 32 }}>
+              <Avatar src={suggestion.profilePicture} sx={{ width: 32, height: 32 }}>
                 {suggestion.username[0].toUpperCase()}
               </Avatar>
               <Box>
@@ -67,12 +108,16 @@ export default function Sidebar() {
                   {suggestion.username}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {suggestion.name}
+                  {suggestion.fullName || 'ConnectMe user'}
                 </Typography>
               </Box>
             </Box>
-            <Button size="small" sx={{ textTransform: 'none', fontWeight: 'bold' }}>
-              Follow
+            <Button
+              size="small"
+              onClick={() => handleFollowToggle(suggestion)}
+              sx={{ textTransform: 'none', fontWeight: 'bold' }}
+            >
+              {followState[suggestion._id] ? 'Following' : 'Follow'}
             </Button>
           </Box>
         ))}

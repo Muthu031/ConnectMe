@@ -126,3 +126,15 @@ a {
   backdrop-filter: blur(8px);
   background-color: rgba(0, 0, 0, 0.65);
 }
+
+/* Prevent browser autofill paint from causing visual text overlap in MUI inputs */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text-primary);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface-color) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}

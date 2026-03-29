@@ -1,18 +1,44 @@
 'use client'
 
+import { useEffect, useMemo, useState } from 'react'
 import { Box, Avatar, Typography, Paper } from '@mui/material'
 import { useRouter } from 'next/navigation'
+import api from '@/lib/api'
 
-const stories = [
-  { id: 1, username: 'Your Story', avatar: '/avatars/you.jpg', hasStory: false },
-  { id: 2, username: 'user1', avatar: '/avatars/1.jpg', hasStory: true },
-  { id: 3, username: 'user2', avatar: '/avatars/2.jpg', hasStory: true },
-  { id: 4, username: 'user3', avatar: '/avatars/3.jpg', hasStory: true },
-  { id: 5, username: 'user4', avatar: '/avatars/4.jpg', hasStory: true },
-]
+interface StoryItem {
+  _id: string
+  user: {
+    _id: string
+    username: string
+    profilePicture?: string
+  }
+}
 
 export default function StoryBar() {
   const router = useRouter()
+  const [stories, setStories] = useState<StoryItem[]>([])
+
+  useEffect(() => {
+    const loadStories = async () => {
+      try {
+        const response = await api.get('/stories')
+        const data = response.data?.stories || response.data?.data?.stories || []
+        setStories(Array.isArray(data) ? data : [])
+      } catch {
+        setStories([])
+      }
+    }
+
+    loadStories()
+  }, [])
+
+  const displayStories = useMemo(() => {
+    const yourStory: StoryItem = {
+      _id: 'your-story',
+      user: { _id: 'me', username: 'Your Story' },
+    }
+    return [yourStory, ...stories.slice(0, 12)]
+  }, [stories])
 
   return (
     <Paper
@@ -27,9 +53,9 @@ export default function StoryBar() {
         },
       }}
     >
-      {stories.map((story) => (
+      {displayStories.map((story) => (
         <Box
-          key={story.id}
+          key={story._id}
           sx={{
             display: 'flex',
             flexDirection: 'column',
@@ -37,15 +63,15 @@ export default function StoryBar() {
             cursor: 'pointer',
             minWidth: 70,
           }}
-          onClick={() => router.push(`/stories/${story.id}`)}
+          onClick={() => router.push(`/stories/${story._id}`)}
         >
           <Avatar
-            src={story.avatar}
-            alt={story.username}
+            src={story.user.profilePicture}
+            alt={story.user.username}
             sx={{
               width: 56,
               height: 56,
-              border: story.hasStory ? '3px solid #E1306C' : '3px solid #DBDBDB',
+              border: story._id === 'your-story' ? '3px solid #DBDBDB' : '3px solid #E1306C',
             }}
           />
           <Typography
@@ -59,7 +85,7 @@ export default function StoryBar() {
               whiteSpace: 'nowrap',
             }}
           >
-            {story.username}
+            {story.user.username}
           </Typography>
         </Box>
       ))}

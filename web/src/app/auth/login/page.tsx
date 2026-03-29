@@ -111,6 +111,13 @@ export default function LoginPage() {
               required
               autoComplete="username"
               autoFocus={!isMobile}
+              placeholder="Email or Phone"
+              InputLabelProps={{ shrink: true }}
+              inputProps={{
+                autoCapitalize: 'none',
+                autoCorrect: 'off',
+                spellCheck: 'false',
+              }}
             />
 
             <TextField
@@ -123,6 +130,8 @@ export default function LoginPage() {
               margin="normal"
               required
               autoComplete="current-password"
+              placeholder="Password"
+              InputLabelProps={{ shrink: true }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">

@@ -30,7 +30,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const skipAuthRedirect = Boolean((error.config as { skipAuthRedirect?: boolean } | undefined)?.skipAuthRedirect)
+
+    if (error.response?.status === 401 && !skipAuthRedirect) {
       localStorage.removeItem('token')
       window.location.href = '/auth/login'
     }

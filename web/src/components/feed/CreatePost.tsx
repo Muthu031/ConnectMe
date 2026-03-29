@@ -2,11 +2,23 @@
 
 import { Box, Paper, TextField, Button, Avatar } from '@mui/material'
 import { AddPhotoAlternate, Videocam } from '@mui/icons-material'
-import { useSelector } from 'react-redux'
-import { RootState } from '@/redux/store'
+import { useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { AppDispatch, RootState } from '@/redux/store'
+import { createPost } from '@/redux/slices/feedSlice'
 
 export default function CreatePost() {
+  const dispatch = useDispatch<AppDispatch>()
   const { user } = useSelector((state: RootState) => state.auth)
+  const [caption, setCaption] = useState('')
+
+  const handleCreatePost = async () => {
+    const text = caption.trim()
+    if (!text) return
+
+    await dispatch(createPost({ caption: text }))
+    setCaption('')
+  }
 
   return (
     <Paper sx={{ p: 2, mb: 2 }}>
@@ -22,6 +34,8 @@ export default function CreatePost() {
             size="small"
             multiline
             maxRows={4}
+            value={caption}
+            onChange={(event) => setCaption(event.target.value)}
           />
           <Box sx={{ display: 'flex', gap: 1, mt: 1, justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', gap: 1 }}>
@@ -32,7 +46,7 @@ export default function CreatePost() {
                 Video
               </Button>
             </Box>
-            <Button variant="contained" size="small">
+            <Button variant="contained" size="small" onClick={handleCreatePost}>
               Post
             </Button>
           </Box>
